@@ -22,28 +22,9 @@ const pizzaSchema = new mongoose.Schema(
             type: Number,
             min: 0,
         },
-        status: {
-            type: String,
-            enum: ['zamówiona', 'w przygotowaniu', 'w piekarniku', 'gotowa'],
-            default: 'zamówiona',
-        },
         createdAt: {
             type: Date,
             default: Date.now(),
-        },
-        paimentMethod: {
-            type: String,
-            enum: ['gotówka', 'karta'],
-            required: [true, 'Należy wybrać metodę płatności'],
-        },
-        paymentType: {
-            type: String,
-            enum: ['z góry', 'przy odbiorze'],
-            required: [true, 'Należy wybrać typ płatności'],
-        },
-        paid: {
-            type: Boolean,
-            default: false,
         },
     },
     {

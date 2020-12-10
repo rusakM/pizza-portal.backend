@@ -4,6 +4,9 @@ const authController = require('../controllers/authController');
 
 const router = express.Router();
 
+router.get('/templates', pizzaController.getAllTemplates);
+router.get('/templates/:id', pizzaController.getPizzaTemplate);
+
 router.use(authController.protect);
 
 router
@@ -20,5 +23,14 @@ router
 router
     .route('/:id/:status')
     .patch(pizzaController.updateStatus, pizzaController.updatePizza);
+
+router.use(authController.restrictTo('kucharz', 'admin'));
+
+router.post('/templates', pizzaController.createPizzaTemplate);
+
+router
+    .route('/templates/:id')
+    .patch(pizzaController.updatePizzaTemplate)
+    .delete(pizzaController.deletePizzaTemplate);
 
 module.exports = router;

@@ -14,8 +14,11 @@ const supplyRouter = require('./routes/supplyRouter');
 const pizzaRouter = require('./routes/pizzaRouter');
 const uploadRouter = require('./routes/uploadRouter');
 const userRouter = require('./routes/userRouter');
-const errorHandler = require('./controllers/errorController');
 const messageRouter = require('./routes/messageRouter');
+const productRouter = require('./routes/productRouter');
+const bookingRouter = require('./routes/bookingRouter');
+
+const errorHandler = require('./controllers/errorController');
 
 const app = express();
 
@@ -79,8 +82,11 @@ app.use((req, res, next) => {
 app.use('/api/supplies', supplyRouter);
 app.use('/api/pizzas', pizzaRouter);
 app.use('/api/users', userRouter);
-app.use('/uploads', uploadRouter);
 app.use('/api/messages', messageRouter);
+app.use('/api/products', productRouter);
+app.use('/api/bookings', bookingRouter);
+
+app.use('/uploads', uploadRouter);
 
 app.use(errorHandler);
 

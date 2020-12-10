@@ -1,5 +1,6 @@
 /* eslint-disable no-await-in-loop */
 const Pizza = require('../models/pizzaModel');
+const PizzaTemplate = require('../models/pizzaTemplateModel');
 const factory = require('./handlerFactory');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
@@ -68,3 +69,13 @@ exports.updatePaymentStatus = (req, res, next) => {
     };
     next();
 };
+
+exports.createPizzaTemplate = factory.createOne(PizzaTemplate);
+
+exports.getPizzaTemplate = factory.getOne(PizzaTemplate);
+
+exports.getAllTemplates = factory.getAll(PizzaTemplate);
+
+exports.updatePizzaTemplate = factory.updateOne(PizzaTemplate);
+
+exports.deletePizzaTemplate = factory.deleteOne(PizzaTemplate);

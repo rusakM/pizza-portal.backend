@@ -5,13 +5,18 @@ const bookingSchema = new mongoose.Schema({
         {
             type: mongoose.Schema.ObjectId,
             ref: 'Pizza',
-            required: [true, 'Zamówienie musi mieć przynajmniej jedną pizzę'],
+        },
+    ],
+    products: [
+        {
+            type: mongoose.Schema.ObjectId,
+            ref: 'Product',
         },
     ],
     user: {
         type: mongoose.Schema.ObjectId,
         ref: 'User',
-        require: [true, 'Zamówienie musi należeć do użytkownika'],
+        required: [true, 'Zamówienie musi należeć do użytkownika'],
     },
     price: {
         type: Number,
@@ -21,7 +26,7 @@ const bookingSchema = new mongoose.Schema({
         type: Date,
         default: Date.now(),
     },
-    paimentMethod: {
+    paymentMethod: {
         type: String,
         enum: ['gotówka', 'karta'],
         required: [true, 'Należy wybrać metodę płatności'],
@@ -38,10 +43,18 @@ const bookingSchema = new mongoose.Schema({
 });
 
 bookingSchema.pre(/^find/, function (next) {
-    this.populate('user').populate({
-        path: 'pizza',
-        select: '-__v',
-    });
+    this.populate({
+        path: 'user',
+        select: '-__v -role -photo',
+    })
+        .populate({
+            path: 'pizza',
+            select: '-__v',
+        })
+        .populate({
+            path: 'products',
+            select: '-__v -count -isAwailable',
+        });
 
     next();
 });
