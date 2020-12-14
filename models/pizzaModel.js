@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Supply = require('./supplyModel');
 
 const pizzaSchema = new mongoose.Schema(
     {
@@ -36,6 +37,35 @@ const pizzaSchema = new mongoose.Schema(
         },
     }
 );
+
+const calculateSize = (size) => {
+    switch (size) {
+        case 24:
+            return 15;
+        case 32:
+            return 19;
+        case 42:
+            return 23;
+        default:
+            return 15;
+    }
+};
+
+pizzaSchema.pre('save', async function (next) {
+    if (!this.ingredients.length) {
+        this.price = calculateSize(this.size);
+        return next();
+    }
+    const pricesPromises = this.ingredients.map(async (id) =>
+        Supply.findById(id)
+    );
+    const price =
+        (await (await Promise.all(pricesPromises))
+            .map((item) => item.price)
+            .reduce((total, val) => total + val)) + calculateSize(this.size);
+
+    this.price = price;
+});
 
 pizzaSchema.pre(/^find/, async function (next) {
     this.populate({

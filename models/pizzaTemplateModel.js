@@ -1,19 +1,40 @@
 const mongoose = require('mongoose');
 
-const pizzaTemplateSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: [true, 'Nie podano nazwy szablonu'],
+const Pizza = require('./pizzaModel');
+
+const pizzaTemplateSchema = new mongoose.Schema(
+    {
+        name: {
+            type: String,
+            required: [true, 'Nie podano nazwy szablonu'],
+        },
+        pizza: {
+            type: mongoose.Schema.ObjectId,
+            ref: 'Pizza',
+            required: [true, 'Szblon musi być przypisany do istniejącej pizzy'],
+        },
+        counter: {
+            type: Number,
+            default: 0,
+        },
+        price: {
+            type: Number,
+            min: 0,
+        },
     },
-    pizzaId: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'Pizza',
-        required: [true, 'Szblon musi być przypisany do istniejącej pizzy'],
-    },
-    counter: {
-        type: Number,
-        default: 0,
-    },
+    {
+        toJSON: {
+            virtuals: true,
+        },
+        toObject: {
+            virtuals: true,
+        },
+    }
+);
+
+pizzaTemplateSchema.pre('save', async function (next) {
+    const pizza = await Pizza.findById(this.pizza);
+    this.price = pizza.price;
 });
 
 pizzaTemplateSchema.pre(/^find/, function (next) {

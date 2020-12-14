@@ -1,5 +1,9 @@
 const mongoose = require('mongoose');
 
+const Pizza = require('./pizzaModel');
+const Product = require('./productModel');
+const PizzaTemplate = require('./pizzaTemplateModel');
+
 const bookingSchema = new mongoose.Schema({
     pizzas: [
         {
@@ -13,6 +17,12 @@ const bookingSchema = new mongoose.Schema({
             ref: 'Product',
         },
     ],
+    templates: [
+        {
+            type: mongoose.Schema.ObjectId,
+            ref: 'PizzaTemplate',
+        },
+    ],
     user: {
         type: mongoose.Schema.ObjectId,
         ref: 'User',
@@ -20,7 +30,7 @@ const bookingSchema = new mongoose.Schema({
     },
     price: {
         type: Number,
-        required: [true, 'Zamówienie musi mieć cenę'],
+        min: 0,
     },
     createdAt: {
         type: Date,
@@ -42,18 +52,50 @@ const bookingSchema = new mongoose.Schema({
     },
 });
 
+bookingSchema.pre('save', async function (next) {
+    const pizzasPromises = this.pizzas.map(async (id) => Pizza.findById(id));
+    const productsPromises = this.products.map(async (id) =>
+        Product.findById(id)
+    );
+    const templatePromises = this.templates.map(async (id) =>
+        PizzaTemplate.findById(id)
+    );
+    let price = 0;
+    if (pizzasPromises.length) {
+        price += await (await Promise.all(pizzasPromises))
+            .map((pizza) => pizza.price)
+            .reduce((total, val) => total + val);
+    }
+    if (productsPromises.length) {
+        price += await (await Promise.all(productsPromises))
+            .map((product) => product.price)
+            .reduce((total, val) => total + val);
+    }
+
+    if (templatePromises.length) {
+        price += await (await Promise.all(templatePromises))
+            .map((template) => template.price)
+            .reduce((total, val) => total + val);
+    }
+    this.price = price;
+});
+
 bookingSchema.pre(/^find/, function (next) {
     this.populate({
         path: 'user',
         select: '-__v -role -photo',
     })
         .populate({
-            path: 'pizza',
+            path: 'pizzas',
             select: '-__v',
         })
         .populate({
             path: 'products',
             select: '-__v -count -isAwailable',
+        })
+        .populate({
+            path: 'templates',
+            select: '-__v -counter',
         });
 
     next();
