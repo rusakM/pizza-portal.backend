@@ -74,7 +74,11 @@ bookingSchema.pre('save', async function (next) {
 
     if (templatePromises.length) {
         price += await (await Promise.all(templatePromises))
-            .map((template) => template.price)
+            .map(async (template) => {
+                template.incrementCounter();
+                await template.save();
+                return template.price;
+            })
             .reduce((total, val) => total + val);
     }
     this.price = price;
