@@ -6,13 +6,18 @@ const router = express.Router();
 
 router.use(authController.protect);
 
-router.post('/', bookingController.createBooking);
+router
+    .route('/')
+    .get(authController.restrictToCurrentUser, bookingController.getAllBookings)
+    .post(bookingController.createBooking);
 
-router.get('/:id', bookingController.getBooking);
+router.get(
+    '/:id',
+    authController.restrictToCurrentUser,
+    bookingController.getBooking
+);
 
 router.use(authController.restrictTo('admin', 'kucharz'));
-
-router.get('/', bookingController.getAllBookings);
 
 router
     .route('/:id')

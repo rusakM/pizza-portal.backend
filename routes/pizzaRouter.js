@@ -10,21 +10,19 @@ router.get('/templates/:id', pizzaController.getPizzaTemplate);
 router.use(authController.protect);
 
 router
-    .route('/')
+    .route('/myPizzas')
     .get(pizzaController.getAllPizzas)
     .post(pizzaController.createNewPizza);
 
 router
     .route('/:id')
-    .get(pizzaController.getOnePizza)
-    .patch(pizzaController.updatePizza)
-    .delete(pizzaController.deletePizza);
-
-router
-    .route('/:id/:status')
-    .patch(pizzaController.updateStatus, pizzaController.updatePizza);
+    .get(authController.restrictToCurrentUser, pizzaController.getOnePizza)
+    .patch(authController.restrictToCurrentUser, pizzaController.updatePizza)
+    .delete(authController.restrictToCurrentUser, pizzaController.deletePizza);
 
 router.use(authController.restrictTo('kucharz', 'admin'));
+
+router.get('/', pizzaController.getAllPizzas);
 
 router.post('/templates', pizzaController.createPizzaTemplate);
 

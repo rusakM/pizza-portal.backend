@@ -109,6 +109,17 @@ exports.protect = catchAsync(async (req, res, next) => {
     next();
 });
 
+exports.restrictToCurrentUser = (req, res, next) => {
+    if (!req.user) {
+        return next(new AppError('Nie jesteś zalogowany', 404));
+    }
+    req.userRestriction = {
+        id: req.user.id,
+        role: req.user.role,
+    };
+    next();
+};
+
 exports.restrictTo = (...roles) => {
     return (req, res, next) => {
         if (!roles.includes(req.user.role)) {

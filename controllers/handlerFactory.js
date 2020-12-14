@@ -2,8 +2,23 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const APIFeatures = require('../utils/apiFeatures');
 
+const checkUserRestriction = async (message, Model, req, next) => {
+    if (req.userRestriction && req.userRestriction.role === 'użytkownik') {
+        const d = await Model.findById(req.params.id);
+        if (d.user !== req.userRestriction.id) {
+            return next(new AppError(message, 403));
+        }
+    }
+};
+
 exports.deleteOne = (Model) =>
     catchAsync(async (req, res, next) => {
+        await checkUserRestriction(
+            'Nie możesz skasować zasobów do których nie masz dostępu',
+            Model,
+            req,
+            next
+        );
         const doc = await Model.findbyIdAndDelete(req.params.id);
 
         if (!doc) {
@@ -18,6 +33,12 @@ exports.deleteOne = (Model) =>
 
 exports.updateOne = (Model) =>
     catchAsync(async (req, res, next) => {
+        await checkUserRestriction(
+            'Nie możesz zmienić zasobów do których nie masz dostępu',
+            Model,
+            req,
+            next
+        );
         const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
             new: true,
             runValidators: true,
@@ -49,6 +70,12 @@ exports.createOne = (Model) =>
 
 exports.getOne = (Model, popOptions) =>
     catchAsync(async (req, res, next) => {
+        await checkUserRestriction(
+            'Nie możesz pobrać zasobów do których nie masz dostępu',
+            Model,
+            req,
+            next
+        );
         const query = await Model.findById(req.params.id);
         if (popOptions) {
             query.populate(popOptions);
@@ -68,6 +95,9 @@ exports.getOne = (Model, popOptions) =>
 
 exports.getAll = (Model) =>
     catchAsync(async (req, res, next) => {
+        if (req.userRestriction && req.userRestriction.role === 'użytkownik') {
+            req.query.user = req.user.id;
+        }
         const features = new APIFeatures(Model.find({}), req.query)
             .filter()
             .sort()
