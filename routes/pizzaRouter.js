@@ -16,9 +16,9 @@ router
 
 router
     .route('/:id')
-    .get(authController.restrictToCurrentUser, pizzaController.getOnePizza)
-    .patch(authController.restrictToCurrentUser, pizzaController.updatePizza)
-    .delete(authController.restrictToCurrentUser, pizzaController.deletePizza);
+    .get(pizzaController.getOnePizza)
+    .patch(pizzaController.updatePizza)
+    .delete(pizzaController.deletePizza);
 
 router.use(authController.restrictTo('kucharz', 'admin'));
 

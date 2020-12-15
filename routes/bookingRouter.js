@@ -8,16 +8,14 @@ router.use(authController.protect);
 
 router
     .route('/')
-    .get(authController.restrictToCurrentUser, bookingController.getAllBookings)
-    .post(bookingController.createBooking);
+    .get(bookingController.getAllBookings)
+    .post(bookingController.newBooking);
 
-router.get(
-    '/:id',
-    authController.restrictToCurrentUser,
-    bookingController.getBooking
-);
+router.get('/:id', bookingController.getBooking);
 
 router.use(authController.restrictTo('admin', 'kucharz'));
+
+router.get('/', bookingController.createBooking);
 
 router
     .route('/:id')

@@ -61,4 +61,11 @@ module.exports = class Email {
     async sendPasswordReset() {
         await this.send('passwordReset', 'PizzaPortal - reset hasła');
     }
+
+    async sendBooking() {
+        await this.send(
+            'booking',
+            'PizzaPortal - przyjęliśmy twoje zamówienie'
+        );
+    }
 };

@@ -3,9 +3,9 @@ const AppError = require('../utils/appError');
 const APIFeatures = require('../utils/apiFeatures');
 
 const checkUserRestriction = async (message, Model, req, next) => {
-    if (req.userRestriction && req.userRestriction.role === 'użytkownik') {
+    if (req.user && req.user.role === 'użytkownik') {
         const d = await Model.findById(req.params.id);
-        if (d.user !== req.userRestriction.id) {
+        if (d.user !== req.user.id) {
             return next(new AppError(message, 403));
         }
     }
@@ -95,7 +95,7 @@ exports.getOne = (Model, popOptions) =>
 
 exports.getAll = (Model) =>
     catchAsync(async (req, res, next) => {
-        if (req.userRestriction && req.userRestriction.role === 'użytkownik') {
+        if (req.user && req.user.role === 'użytkownik') {
             req.query.user = req.user.id;
         }
         const features = new APIFeatures(Model.find({}), req.query)
