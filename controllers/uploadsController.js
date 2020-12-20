@@ -12,8 +12,8 @@ const readFile = (file, next) => {
 };
 
 exports.getFile = catchAsync(async (req, res, next) => {
-    const { filename } = req.params;
-    const filePath = `${process.cwd()}/uploads/${filename}`;
+    const { dir, filename } = req.params;
+    const filePath = `${process.cwd()}/uploads/${dir}/${filename}`;
     await readFile(filePath, next);
     res.status(200).sendFile(filePath);
 });

@@ -22,13 +22,20 @@ router
 
 router.use(authController.restrictTo('kucharz', 'admin'));
 
-router.get('/', pizzaController.getAllPizzas);
+router
+    .route('/')
+    .get(pizzaController.getAllPizzas)
+    .post(pizzaController.createNewPizza);
 
 router.post('/templates', pizzaController.createPizzaTemplate);
 
 router
     .route('/templates/:id')
-    .patch(pizzaController.updatePizzaTemplate)
+    .patch(
+        pizzaController.uploadPhoto,
+        pizzaController.resizePhoto,
+        pizzaController.updatePizzaTemplate
+    )
     .delete(pizzaController.deletePizzaTemplate);
 
 module.exports = router;

@@ -73,13 +73,12 @@ bookingSchema.pre('save', async function (next) {
     }
 
     if (templatePromises.length) {
-        price += await (await Promise.all(templatePromises))
-            .map(async (template) => {
+        await (await Promise.all(templatePromises)).forEach(
+            async (template) => {
                 template.incrementCounter();
                 await template.save();
-                return template.price;
-            })
-            .reduce((total, val) => total + val);
+            }
+        );
     }
     this.price = price;
 });
@@ -99,7 +98,7 @@ bookingSchema.pre(/^find/, function (next) {
         })
         .populate({
             path: 'templates',
-            select: '-__v -counter',
+            select: 'name',
         });
 
     next();
