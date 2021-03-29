@@ -81,11 +81,11 @@ userSchema.pre('save', function (next) {
 });
 
 // this method compares given password with password in db when the user wants to log in
-userSchema.methods.correctPassword = async function (
-    candidatePassword,
-    userPassword
+userSchema.methods.correctPassword = async function(
+  candidatePassword,
+  userPassword
 ) {
-    return await bcrypt.compare(candidatePassword, userPassword);
+  return await bcrypt.compare(candidatePassword, userPassword);
 };
 
 // this method will check if the password was changed after generate the token
