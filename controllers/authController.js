@@ -109,6 +109,15 @@ exports.protect = catchAsync(async (req, res, next) => {
     next();
 });
 
+exports.signUser = (req, res, next) => {
+    if (!req.user.id) {
+        return next(new AppError('Nie można wykonać tej akcji', 404));
+    }
+    req.body.user = req.user.id;
+
+    next();
+};
+
 exports.restrictTo = (...roles) => {
     return (req, res, next) => {
         if (!roles.includes(req.user.role)) {
