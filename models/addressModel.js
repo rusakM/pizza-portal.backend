@@ -2,7 +2,9 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 
 const zipCodeValidator = new RegExp(/^([0-9]{2})(-[0-9]{3})?$/i);
-const cityValidator = new RegExp(/^[a-zA-Z]+(?:[\s-][a-zA-Z]+)*$/);
+const cityValidator = new RegExp(
+    /^[A-ZĆŁÓŚŹŻ][a-ząćęłńóśźż]+(?:[\s-][A-ZĆŁÓŚŹŻ][a-ząćęłńóśźż]+)*$/
+);
 const houseNumberValidator = new RegExp(/^\d+[a-zA-Z]*$/);
 
 const addressSchema = new mongoose.Schema({
@@ -68,6 +70,7 @@ const addressSchema = new mongoose.Schema({
             },
         },
     },
+    isDefault: Boolean,
 });
 
 addressSchema.pre(/^find/, function (next) {

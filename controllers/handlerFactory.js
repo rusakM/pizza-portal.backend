@@ -19,7 +19,7 @@ exports.deleteOne = (Model) =>
             req,
             next
         );
-        const doc = await Model.findbyIdAndDelete(req.params.id);
+        const doc = await Model.findByIdAndDelete(req.params.id);
 
         if (!doc) {
             return next(new AppError('No document found with that ID', 404));
