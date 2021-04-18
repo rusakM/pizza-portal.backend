@@ -27,6 +27,7 @@ const createSendToken = (user, statusCode, req, res) => {
     res.cookie('jwt', token, cookieOptions).status(statusCode).json({
         status: 'success',
         token,
+        tokenExpires: cookieOptions.expires.getTime(),
         data: {
             user,
         },
@@ -62,7 +63,8 @@ exports.login = catchAsync(async (req, res, next) => {
 
 exports.logout = (req, res) => {
     res.cookie('jwt', 'logedout', {
-        expires: Date.now() + 10 * 1000,
+        expires: new Date(Date.now() + 10 * 1000),
+        httpOnly: true,
     })
         .status(200)
         .json({
