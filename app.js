@@ -18,6 +18,7 @@ const messageRouter = require('./routes/messageRouter');
 const productRouter = require('./routes/productRouter');
 const bookingRouter = require('./routes/bookingRouter');
 const addressRouter = require('./routes/addressRouter');
+const bookingStatusRouter = require('./routes/bookingStatusRouter');
 
 const errorHandler = require('./controllers/errorController');
 
@@ -87,6 +88,7 @@ app.use('/api/messages', messageRouter);
 app.use('/api/products', productRouter);
 app.use('/api/bookings', bookingRouter);
 app.use('/api/address', addressRouter);
+app.use('/api/bookingStatuses', bookingStatusRouter);
 
 app.use('/uploads', uploadRouter);
 

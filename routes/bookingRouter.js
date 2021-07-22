@@ -1,25 +1,45 @@
 const express = require('express');
 const bookingController = require('../controllers/bookingController');
 const authController = require('../controllers/authController');
+const bookingStatusController = require('../controllers/bookingStatusController');
 
 const router = express.Router();
 
 router.use(authController.protect);
+router.use(authController.signUser);
 
 router
     .route('/')
     .get(bookingController.getAllBookings)
-    .post(bookingController.newBooking);
-
-router.get('/:id', bookingController.getBooking);
-
-router.use(authController.restrictTo('admin', 'kucharz'));
-
-router.get('/', bookingController.createBooking);
+    .post(
+        bookingController.saveBooking,
+        bookingController.populateBooking,
+        bookingController.mapBooking,
+        bookingController.mapPizzaDescriptions,
+        bookingController.sendEmail,
+        bookingController.processBooking,
+        bookingController.mapBookingForPaymentSession,
+        bookingController.createPaymentSession
+    );
 
 router
     .route('/:id')
-    .patch(bookingController.updateBooking)
-    .delete(bookingController.deleteBooking);
+    .get(bookingController.getBooking)
+    .patch(
+        bookingController.preventBooking,
+        bookingController.payBooking,
+        bookingController.finishBooking,
+        bookingController.updateBooking
+    );
+
+router.get(
+    '/:id/history',
+    bookingStatusController.getBookingStatusList,
+    bookingStatusController.getAll
+);
+
+router.use(authController.restrictTo('admin', 'kucharz'));
+
+router.delete('/:id', bookingController.deleteBooking);
 
 module.exports = router;

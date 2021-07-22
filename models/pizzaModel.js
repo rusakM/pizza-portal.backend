@@ -59,11 +59,11 @@ pizzaSchema.pre('save', async function (next) {
     const pricesPromises = this.ingredients.map(async (id) =>
         Supply.findById(id)
     );
-    const price =
+    let price =
         (await (await Promise.all(pricesPromises))
             .map((item) => item.price)
             .reduce((total, val) => total + val)) + calculateSize(this.size);
-
+    price = Math.round(price * 100) / 100;
     this.price = price;
 });
 

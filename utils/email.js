@@ -7,7 +7,7 @@ module.exports = class Email {
         this.to = user.email;
         this.firstName = user.name.split(' ')[0];
         this.url = url;
-        this.from = `PizzaPortal <${process.env}>`;
+        this.from = `PizzaPortal <${process.env.EMAIL_FROM}>`;
         this.backendUrl = backendUrl;
     }
 
@@ -31,17 +31,16 @@ module.exports = class Email {
         });
     }
 
-    async send(template, subject, ...order) {
+    async send(template, subject, ...otherProps) {
         const html = pug.renderFile(`${__dirname}/../emails/${template}.pug`, {
             firstName: this.firstName,
             url: this.url,
             subject,
             backendUrl: this.backendUrl,
-            order: {
-                ...order,
+            otherProps: {
+                ...otherProps,
             },
         });
-        console.log(...order);
 
         const mailOptions = {
             from: this.from,
@@ -50,7 +49,6 @@ module.exports = class Email {
             html,
             text: htmlToText.fromString(html),
         };
-
         await this.newTransport().sendMail(mailOptions);
     }
 
@@ -62,10 +60,19 @@ module.exports = class Email {
         await this.send('passwordReset', 'PizzaPortal - reset hasła');
     }
 
-    async sendBooking() {
+    async sendBooking(booking) {
         await this.send(
             'booking',
-            'PizzaPortal - przyjęliśmy twoje zamówienie'
+            'PizzaPortal - przyjęliśmy twoje zamówienie',
+            booking
+        );
+    }
+
+    async sendBookingPaid(booking) {
+        await this.send(
+            'bookingPaid',
+            'PizzaPortal - zamówienie zostało opłacone',
+            booking
         );
     }
 };

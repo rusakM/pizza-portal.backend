@@ -5,7 +5,7 @@ const APIFeatures = require('../utils/apiFeatures');
 const checkUserRestriction = async (message, Model, req, next) => {
     if (req.user && req.user.role === 'użytkownik') {
         const d = await Model.findById(req.params.id);
-        if (d.user !== req.user.id) {
+        if (`${d.user._id}` !== `${req.user.id}`) {
             return next(new AppError(message, 403));
         }
     }

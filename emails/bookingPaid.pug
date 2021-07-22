@@ -2,16 +2,12 @@ extends baseEmail
 
 block content
     p Hej #{firstName}!
-    p Twoje zamówienie zostało przyjęte. Dziękujemy za zaufanie.
+    p Twoje zamówienie o numerze
+        b= ` ${otherProps[0].barcode} `
+        span zostało opłacone. Dziękujemy za dokonanie wpłaty.
     p Śledź status zamówienia na naszej stronie w zakładce 
         b Moje zamówienia
     p Gdy twoje pizze będą gotowe, nasz system poinformuje cię wiadomością email o możliwości ich odebrania.
-    p Numer zamówienia: 
-        b= otherProps[0].barcode
-    br
-    br
-    h2= `Do zapłaty: ${otherProps[0].price} zł`
-    
     table.btn.btn-primary(role='presentaion', border='0', cellpadding='0', cellspacing='0')
         tbody
             tr
@@ -21,8 +17,5 @@ block content
                             tr
                                 td
                                     a(href=`${url}`, target='_blank') Sprawdź status zamówienia!
-    
-    table(role='presentaion', border='1', cellpadding='0', cellspacing='0')
-                        thead
     p
     p - Zespół PizzaPortal
