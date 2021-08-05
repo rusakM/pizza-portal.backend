@@ -54,34 +54,40 @@ exports.saveBooking = catchAsync(async (req, res, next) => {
 });
 
 exports.populateBooking = catchAsync(async (req, res, next) => {
-    const { _doc } = await Booking.findById(req.booking._id);
-    if (!_doc) {
+    const doc = await Booking.findById(req.booking._id);
+    if (!doc) {
         return next(new AppError('Błąd przetwarzania zamówienia', 404));
     }
 
-    req.booking = _doc;
+    req.booking = doc.toObject();
 
     next();
 });
 
 exports.mapBooking = (req, res, next) => {
-    const { body } = req;
     const mappedBooking = { ...req.booking };
+
     // mapping counts
     for (const category of itemCategories) {
-        if (body[category] && body[category].length > 0) {
-            const itemsSet = [...new Set(body[category])];
+        if (mappedBooking[category] && mappedBooking[category].length > 0) {
+            // get list of ids items of current category
+            const listOfIds = mappedBooking[category].map(
+                ({ _id }) => `${_id}`
+            );
+            //create set of ids
+            const itemsSet = [...new Set(listOfIds)];
+
             mappedBooking[category] = itemsSet.map((item) => {
                 const filtered = mappedBooking[category].filter(({ _id }) => {
                     return `${item}` === `${_id}`;
                 });
                 return {
-                    ...filtered[0]._doc,
+                    ...filtered[0],
                     quantity: filtered.length,
-                    amount: Math.floor(filtered[0]._doc.price * 100),
-                    totalAmount: Math.floor(
-                        filtered[0]._doc.price * filtered.length
-                    ),
+                    amount: Math.floor(filtered[0].price * 100),
+                    totalAmount:
+                        Math.floor(filtered[0].price * filtered.length * 100) /
+                        100,
                 };
             });
         }
@@ -100,7 +106,11 @@ exports.mapBooking = (req, res, next) => {
             );
             return {
                 ...pizza,
-                name: `${templates[0]._doc.name} ${pizza.size} cm`,
+                name: `${templates[0].name} ${pizza.size} cm`,
+                coverPhoto: templates[0].coverPhoto,
+                slug: templates[0].slug,
+                templateId: templates[0]._id,
+                templateCounter: templates[0].counter,
             };
         });
     }
@@ -121,19 +131,19 @@ exports.mapBooking = (req, res, next) => {
 };
 
 exports.mapPizzaDescriptions = (req, res, next) => {
-    if (req.user.role !== 'użytkownik') {
-        return next();
-    }
+    // if (req.user.role !== 'użytkownik') {
+    //     return next();
+    // }
 
     const { mappedBooking } = req;
     //mapping pizzas
     if (mappedBooking.pizzas && mappedBooking.pizzas.length > 0) {
         mappedBooking.pizzas = mappedBooking.pizzas.map((pizza) => {
             let description = 'pomidory, mozzarella, oregano';
-            if (pizza.ingredients.length > 0) {
+            if (pizza.ingredients && pizza.ingredients.length > 0) {
                 description += ', ';
                 description += pizza.ingredients
-                    .map(({ _doc: name }) => name)
+                    .map(({ name }) => name)
                     .reduce((total, val) => total + ', ' + val);
             }
             return {
@@ -150,7 +160,7 @@ exports.mapPizzaDescriptions = (req, res, next) => {
             if (pizza.ingredients.length > 0) {
                 description += ', ';
                 description += pizza.ingredients
-                    .map(({ _doc: name }) => name)
+                    .map(({ name }) => name)
                     .reduce((total, val) => total + ', ' + val);
             }
             return {
@@ -266,12 +276,14 @@ exports.payBooking = catchAsync(async (req, res, next) => {
             description: 'Zamówienie opłacone',
         });
         if (req.user.role === 'użytkownik') {
-            const { _doc } = await Booking.findById(req.params.id);
+            const doc = await Booking.findById(req.params.id);
             const url = `${req.protocol}://${process.env.WEBPAGE_DOMAIN}${
                 process.env.WEBPAGE_PORT ? `:${process.env.WEBPAGE_PORT}` : ''
             }/myAccount/orders/${req.params.id}`;
             const backendUrl = `${req.protocol}://${req.get('host')}`;
-            await new Email(req.user, url, backendUrl).sendBookingPaid(_doc);
+            await new Email(req.user, url, backendUrl).sendBookingPaid(
+                doc.toObject()
+            );
         }
     }
 
@@ -288,3 +300,27 @@ exports.finishBooking = catchAsync(async (req, res, next) => {
 
     return next();
 });
+
+exports.getOneBooking = catchAsync(async (req, res, next) => {
+    const doc = await Booking.findById(req.params.id);
+
+    if (!doc) {
+        return next(new AppError('Błąd pobierania zamówienia', 404));
+    }
+
+    req.booking = doc.toObject();
+
+    next();
+});
+
+exports.sendMappedBooking = (req, res, next) => {
+    if (req.mappedBooking) {
+        return res.status(200).json({
+            status: 'success',
+            data: {
+                data: req.mappedBooking,
+            },
+        });
+    }
+    next(new AppError('Nie udało się wczytać zamówienia', 404));
+};

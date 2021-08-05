@@ -8,7 +8,6 @@ const bookingStatusSchema = new mongoose.Schema({
     },
     createdAt: {
         type: Date,
-        default: Date.now(),
     },
     description: {
         type: String,
@@ -18,6 +17,12 @@ const bookingStatusSchema = new mongoose.Schema({
 });
 
 bookingStatusSchema.index({ booking: 1, createdAt: -1 });
+
+bookingStatusSchema.pre('save', function (next) {
+    this.createdAt = Date.now();
+
+    next();
+});
 
 const BookingStatus = new mongoose.model('BookingStatus', bookingStatusSchema);
 

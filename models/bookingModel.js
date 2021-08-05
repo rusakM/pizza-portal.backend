@@ -47,7 +47,6 @@ const bookingSchema = new mongoose.Schema(
         },
         createdAt: {
             type: Date,
-            default: Date.now(),
         },
         paid: {
             type: Boolean,
@@ -139,6 +138,16 @@ bookingSchema.pre('save', async function (next) {
         userId.length - 6,
         userId.length
     )}-${time.slice(time.length - 6, time.length)}`;
+    this.createdAt = Date.now();
+});
+
+bookingSchema.pre(/^find/, function (next) {
+    this.populate({
+        path: 'history',
+        select: '-__v',
+    });
+
+    next();
 });
 
 bookingSchema.pre(/^findOne/, function (next) {
@@ -166,10 +175,6 @@ bookingSchema.pre(/^findOne/, function (next) {
         .populate({
             path: 'address',
             select: '-__v -user -isDefault',
-        })
-        .populate({
-            path: 'history',
-            select: '-__v',
         });
 
     next();

@@ -8,6 +8,14 @@ const router = express.Router();
 router.use(authController.protect);
 router.use(authController.signUser);
 
+router.get(
+    '/mapped-booking/:id',
+    bookingController.getOneBooking,
+    bookingController.mapBooking,
+    bookingController.mapPizzaDescriptions,
+    bookingController.sendMappedBooking
+);
+
 router
     .route('/')
     .get(bookingController.getAllBookings)
