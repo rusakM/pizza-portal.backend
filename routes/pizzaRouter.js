@@ -5,6 +5,11 @@ const authController = require('../controllers/authController');
 const router = express.Router();
 
 router.get('/templates', pizzaController.getAllTemplates);
+router.get(
+    '/templates/top-3-pizzas',
+    pizzaController.getTop3Pizzas,
+    pizzaController.getAllTemplates
+);
 router.get('/templates/:id', pizzaController.getPizzaTemplate);
 
 router.use(authController.protect);
@@ -12,7 +17,7 @@ router.use(authController.protect);
 router
     .route('/myPizzas')
     .get(pizzaController.getAllPizzas)
-    .post(pizzaController.createNewPizza);
+    .post(pizzaController.createAndPopulatePizza);
 
 router
     .route('/:id')

@@ -12,7 +12,6 @@ const cors = require('cors');
 
 const supplyRouter = require('./routes/supplyRouter');
 const pizzaRouter = require('./routes/pizzaRouter');
-const uploadRouter = require('./routes/uploadRouter');
 const userRouter = require('./routes/userRouter');
 const messageRouter = require('./routes/messageRouter');
 const productRouter = require('./routes/productRouter');
@@ -29,10 +28,13 @@ const app = express();
 //use cors
 app.use(cors());
 
+//use parameter pollution protection
+app.use(hpp());
+
 app.options('*', cors());
 
 //serving static files
-app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 //development logging
 if (process.env.NODE_ENV === 'development') {
@@ -89,8 +91,6 @@ app.use('/api/products', productRouter);
 app.use('/api/bookings', bookingRouter);
 app.use('/api/address', addressRouter);
 app.use('/api/bookingStatuses', bookingStatusRouter);
-
-app.use('/uploads', uploadRouter);
 
 app.use(errorHandler);
 
