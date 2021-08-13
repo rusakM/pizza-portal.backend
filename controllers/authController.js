@@ -42,8 +42,10 @@ exports.signup = catchAsync(async (req, res, next) => {
         passwordConfirm: req.body.passwordConfirm,
     });
 
-    const url = `${req.protocol}://${req.get('host')}`;
-    await new Email(newUser, `${url}/me`, url).sendWelcome();
+    const url = `${req.protocol}://${process.env.WEBPAGE_DOMAIN}${
+        process.env.WEBPAGE_PORT ? `:${process.env.WEBPAGE_PORT}` : ''
+    }`;
+    await new Email(newUser, `${url}/login`, url).sendWelcome();
     createSendToken(newUser, 201, req, res);
 });
 
