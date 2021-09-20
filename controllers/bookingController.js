@@ -7,6 +7,8 @@ const Email = require('../utils/email');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const BookingStatus = require('../models/bookingStatusModel');
+const BOOKING_STATUSES = require('../utils/bookingStatuses');
+const { resetPassword } = require('./authController');
 
 const itemCategories = ['pizzas', 'ownPizzas', 'drinks', 'sauces'];
 
@@ -273,7 +275,7 @@ exports.payBooking = catchAsync(async (req, res, next) => {
     if (req.body.paid) {
         await BookingStatus.create({
             booking: req.params.id,
-            description: 'Zamówienie opłacone',
+            description: BOOKING_STATUSES.paid,
         });
         if (req.user.role === 'użytkownik') {
             const doc = await Booking.findById(req.params.id);
@@ -294,7 +296,7 @@ exports.finishBooking = catchAsync(async (req, res, next) => {
     if (req.body.isFinished) {
         await BookingStatus.create({
             booking: req.params.id,
-            description: 'Zamówienie odebrane',
+            description: BOOKING_STATUSES.done,
         });
     }
 
@@ -324,3 +326,340 @@ exports.sendMappedBooking = (req, res, next) => {
     }
     next(new AppError('Nie udało się wczytać zamówienia', 404));
 };
+
+const projectAggregatedBookings = [
+    {
+        $project: {
+            _id: 1,
+            paid: 1,
+            price: 1,
+            createdAt: 1,
+            isWithDelivery: 1,
+            isPayNow: 1,
+            isTakeAway: 1,
+            isFinished: 1,
+            user: {
+                _id: 1,
+                email: 1,
+                name: 1,
+                role: 1,
+                photo: 1,
+            },
+            barcode: 1,
+            descriptions: 1,
+            submit: 1,
+            inProcess: 1,
+            shipping: 1,
+            ready: 1,
+            done: 1,
+            cancel: 1,
+        },
+    },
+    {
+        $unwind: '$user',
+    },
+];
+
+const sortAggregatedBookings = {
+    $sort: { createdAt: 1 },
+};
+
+const defaultAggregation = [
+    {
+        $lookup: {
+            from: 'bookingstatuses',
+            localField: '_id',
+            foreignField: 'booking',
+            as: 'statuses',
+        },
+    },
+    {
+        $lookup: {
+            from: 'users',
+            localField: 'user',
+            foreignField: '_id',
+            as: 'agUser',
+        },
+    },
+    {
+        $set: {
+            statusCount: { $size: '$statuses' },
+            descriptions: {
+                $map: {
+                    input: '$statuses',
+                    as: 'description',
+                    in: '$$description.description',
+                },
+            },
+            user: '$agUser',
+        },
+    },
+    {
+        $set: {
+            submit: {
+                $in: [BOOKING_STATUSES.submit, '$descriptions'],
+            },
+            isPaid: {
+                $in: [BOOKING_STATUSES.paid, '$descriptions'],
+            },
+            inProcess: {
+                $in: [BOOKING_STATUSES.inProcess, '$descriptions'],
+            },
+            shipping: {
+                $in: [BOOKING_STATUSES.shipping, '$descriptions'],
+            },
+            ready: {
+                $in: [BOOKING_STATUSES.ready, '$descriptions'],
+            },
+            done: {
+                $in: [BOOKING_STATUSES.done, '$descriptions'],
+            },
+            cancel: {
+                $in: [BOOKING_STATUSES.cancel, '$descriptions'],
+            },
+        },
+    },
+];
+
+exports.getUnapprovedOrders = catchAsync(async (req, res, next) => {
+    const list = await Booking.aggregate([
+        ...defaultAggregation,
+        {
+            $match: {
+                $and: [
+                    { submit: true },
+                    { isPaid: true },
+                    { inProcess: false },
+                    { shipping: false },
+                    { ready: false },
+                    { done: false },
+                    { cancel: false },
+                ],
+            },
+        },
+        ...projectAggregatedBookings,
+        sortAggregatedBookings,
+    ])
+        .skip(req.query.skip * 1 || 0)
+        .limit(25);
+
+    res.status(200).json({
+        status: 'success',
+        results: list.length,
+        data: {
+            data: list,
+        },
+    });
+});
+
+exports.getUnpaidOrders = catchAsync(async (req, res, next) => {
+    const list = await Booking.aggregate([
+        ...defaultAggregation,
+        {
+            $match: {
+                $and: [
+                    { submit: true },
+                    { isPaid: false },
+                    { inProcess: false },
+                    { shipping: false },
+                    { ready: false },
+                    { done: false },
+                    { cancel: false },
+                ],
+            },
+        },
+        ...projectAggregatedBookings,
+        sortAggregatedBookings,
+    ])
+        .skip(req.query.skip * 1 || 0)
+        .limit(25);
+
+    res.status(200).json({
+        status: 'success',
+        results: list.length,
+        data: {
+            data: list,
+        },
+    });
+});
+
+exports.getPendingOrders = catchAsync(async (req, res, next) => {
+    const list = await Booking.aggregate([
+        ...defaultAggregation,
+        {
+            $match: {
+                $and: [
+                    { submit: true },
+                    { isPaid: true },
+                    { inProcess: true },
+                    { shipping: false },
+                    { ready: false },
+                    { done: false },
+                    { cancel: false },
+                ],
+            },
+        },
+        ...projectAggregatedBookings,
+        sortAggregatedBookings,
+    ])
+        .skip(req.query.skip * 1 || 0)
+        .limit(25);
+
+    res.status(200).json({
+        status: 'success',
+        results: list.length,
+        data: {
+            data: list,
+        },
+    });
+});
+
+exports.getShippingOrders = catchAsync(async (req, res, next) => {
+    const shipping = Boolean(req.query.shipping);
+    const list = await Booking.aggregate([
+        ...defaultAggregation,
+        {
+            $match: {
+                $and: [
+                    { submit: true },
+                    { isPaid: true },
+                    { inProcess: true },
+                    { isWithDelivery: true },
+                    { shipping },
+                ],
+            },
+        },
+        ...projectAggregatedBookings,
+        sortAggregatedBookings,
+    ])
+        .skip(req.query.skip * 1 || 0)
+        .limit(25);
+
+    res.status(200).json({
+        status: 'success',
+        results: list.length,
+        data: {
+            data: list,
+        },
+    });
+});
+
+exports.getDoneOrders = catchAsync(async (req, res, next) => {
+    const list = await Booking.aggregate([
+        ...defaultAggregation,
+        {
+            $match: {
+                $and: [
+                    { submit: true },
+                    { isPaid: true },
+                    { inProcess: true },
+                    { done: true },
+                ],
+            },
+        },
+        ...projectAggregatedBookings,
+        {
+            $sort: { createdAt: -1 },
+        },
+    ])
+        .skip(req.query.skip || 0)
+        .limit(25);
+
+    res.status(200).json({
+        status: 'success',
+        results: list.length,
+        data: {
+            data: list,
+        },
+    });
+});
+
+exports.getReadyOrders = catchAsync(async (req, res, next) => {
+    const list = await Booking.aggregate([
+        ...defaultAggregation,
+        {
+            $match: {
+                $and: [
+                    { submit: true },
+                    { isPaid: true },
+                    { inProcess: true },
+                    { ready: true },
+                    { done: false },
+                ],
+            },
+        },
+        ...projectAggregatedBookings,
+        sortAggregatedBookings,
+    ])
+        .skip(req.query.skip * 1 || 0)
+        .limit(25);
+
+    res.status(200).json({
+        status: 'success',
+        results: list.length,
+        data: {
+            data: list,
+        },
+    });
+});
+
+exports.getCanceledBookings = catchAsync(async (req, res, next) => {
+    const list = await Booking.aggregate([
+        ...defaultAggregation,
+        {
+            $match: {
+                cancel: true,
+            },
+        },
+        ...projectAggregatedBookings,
+        {
+            $sort: { createdAt: -1 },
+        },
+    ])
+        .skip(req.query.skip * 1 || 0)
+        .limit(25);
+
+    res.status(200).json({
+        status: 'success',
+        results: list.length,
+        data: {
+            data: list,
+        },
+    });
+});
+
+exports.getAllAggregatedBookings = catchAsync(async (req, res, next) => {
+    const list = await Booking.aggregate([
+        ...defaultAggregation,
+        ...projectAggregatedBookings,
+        {
+            $sort: { createdAt: -1 },
+        },
+    ])
+        .skip(req.query.skip * 1 || 0)
+        .limit(25);
+
+    res.status(200).json({
+        status: 'success',
+        results: list.length,
+        data: {
+            data: list,
+        },
+    });
+});
+
+exports.test = catchAsync(async (req, res, next) => {
+    const list = await Booking.aggregate([
+        ...defaultAggregation,
+        ...projectAggregatedBookings,
+        sortAggregatedBookings,
+    ]);
+
+    res.status(200).json({
+        status: 'success',
+        results: list.length,
+        data: {
+            data: list,
+        },
+    });
+});

@@ -63,6 +63,24 @@ exports.login = catchAsync(async (req, res, next) => {
     createSendToken(user, 200, req, res);
 });
 
+exports.loginAdmin = catchAsync(async (req, res, next) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        return next(new AppError('Nie podano adresu email lub hasła.', 400));
+    }
+    const user = await User.findOne({ email }).select('+password');
+
+    if (!user || !(await user.correctPassword(password, user.password))) {
+        return next(new AppError('Niepoprawny email lub hasło.', 401));
+    }
+
+    if (user.role === 'użytkownik') {
+        return next(new AppError('Użytkownik nie ma dostępu do tej aplikacji'));
+    }
+    createSendToken(user, 200, req, res);
+});
+
 exports.logout = (req, res) => {
     res.cookie('jwt', 'logedout', {
         expires: new Date(Date.now() + 10 * 1000),
@@ -117,7 +135,11 @@ exports.signUser = (req, res, next) => {
     if (!req.user.id) {
         return next(new AppError('Nie można wykonać tej akcji', 404));
     }
-    req.body.user = req.user.id;
+    if (!req.body.rewriteUser) {
+        req.body.user = req.user.id;
+    } else {
+        req.body.user = req.body.rewriteUser;
+    }
 
     next();
 };

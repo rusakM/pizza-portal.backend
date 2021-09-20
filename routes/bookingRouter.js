@@ -30,6 +30,25 @@ router
         bookingController.createPaymentSession
     );
 
+router.get('/unapproved', bookingController.getUnapprovedOrders);
+
+router.get('/unpaid', bookingController.getUnpaidOrders);
+
+router.get('/pending', bookingController.getPendingOrders);
+
+//nice to have use shipping param as boolean
+//true means - orders during delivery
+//false mesns - orders not prepared for delivery yet
+router.get('/shipping', bookingController.getShippingOrders);
+
+router.get('/done', bookingController.getDoneOrders);
+
+router.get('/ready', bookingController.getReadyOrders);
+
+router.get('/canceled', bookingController.getCanceledBookings);
+
+router.get('/all', bookingController.getAllAggregatedBookings);
+
 router
     .route('/:id')
     .get(bookingController.getBooking)
@@ -40,11 +59,19 @@ router
         bookingController.updateBooking
     );
 
-router.get(
-    '/:id/history',
-    bookingStatusController.getBookingStatusList,
-    bookingStatusController.getAll
-);
+router
+    .route('/:id/history')
+    .get(
+        bookingStatusController.getBookingStatusList,
+        bookingStatusController.getAll
+    )
+    .post(
+        bookingStatusController.rewriteBookingId,
+        bookingStatusController.checkIfExist,
+        bookingStatusController.createStatus
+    );
+
+router.post('/:id/getByOrder', bookingStatusController.getByOrder);
 
 router.use(authController.restrictTo('admin', 'kucharz'));
 

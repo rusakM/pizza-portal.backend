@@ -79,3 +79,17 @@ exports.getAllUsers = factory.getAll(User);
 exports.getUser = factory.getOne(User);
 exports.updateUser = factory.updateOne(User);
 exports.deleteUser = factory.deleteOne(User);
+
+exports.findUsers = catchAsync(async (req, res, next) => {
+    const users = await User.find({ name: new RegExp(req.params.name, 'gi') });
+    if (!users) {
+        return next(new AppError('Nie można wyszukać', 404));
+    }
+    res.status(200).json({
+        status: 'success',
+        results: users.length,
+        data: {
+            data: users,
+        },
+    });
+});
