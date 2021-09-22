@@ -12,6 +12,7 @@ router.use(
 );
 
 router.get('/', messageController.getAllMessages);
+
 router
     .route('/:id')
     .get(messageController.getMessage)
@@ -19,14 +20,14 @@ router
     .delete(messageController.deleteMessage);
 
 router.patch(
-    '/:id/markAsReplied',
-    messageController.markMessage('isReplied'),
+    '/:id/read',
+    messageController.readMessage,
     messageController.updateMessage
 );
 
 router.patch(
-    '/:id/markAsRead',
-    messageController.markMessage('isRead'),
+    '/:id/reply',
+    messageController.setReply,
     messageController.updateMessage
 );
 

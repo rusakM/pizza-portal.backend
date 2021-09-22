@@ -30,6 +30,18 @@ const messageSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    createdAt: Date,
+    readAt: Date,
+    repliedAt: Date,
+    reply: String,
+});
+
+messageSchema.pre('save', function (next) {
+    if (this.isNew) {
+        this.createdAt = Date.now();
+    }
+
+    next();
 });
 
 const messageModel = new mongoose.model('Message', messageSchema);

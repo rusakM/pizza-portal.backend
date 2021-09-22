@@ -6,9 +6,9 @@ module.exports = class Email {
     constructor(user, url, backendUrl) {
         this.to = user.email;
         this.firstName = user.name.split(' ')[0];
-        this.url = url;
+        this.url = url || '';
         this.from = `PizzaPortal <${process.env.EMAIL_FROM}>`;
-        this.backendUrl = backendUrl;
+        this.backendUrl = backendUrl || '';
     }
 
     newTransport() {
@@ -73,6 +73,16 @@ module.exports = class Email {
             'bookingPaid',
             'PizzaPortal - zamówienie zostało opłacone',
             booking
+        );
+    }
+
+    async sendMessageReply(reply) {
+        await this.send(
+            'reply',
+            '[no-reply] PizzaPortal - odpowiedź na twoje pytanie',
+            {
+                reply,
+            }
         );
     }
 };

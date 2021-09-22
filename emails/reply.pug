@@ -1,0 +1,10 @@
+extends baseEmail
+
+block content
+    p Hej #{firstName}!
+    p Dziękujemy za wiadomość od Ciebie wysłaną do nas poprzez formularz kontaktowy.
+    p Nasza odpowiedź:
+    p 
+    p= `${otherProps[0].reply}`
+    p
+    p - Zespół PizzaPortal
