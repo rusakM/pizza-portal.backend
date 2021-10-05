@@ -1,5 +1,6 @@
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
+const Socket = require('socket.io');
 
 process.on('uncaughtException', (err) => {
     console.log('Uncaught exception! Shutting down...');
@@ -28,6 +29,12 @@ const port = process.env.PORT || 3000;
 const server = app.listen(port, () => {
     console.log(`App is running on ${port}...`);
 });
+
+const io = new Socket.Server(server, {
+    cors: { origin: '*' },
+});
+
+app.set('io', io);
 
 process.on('unhandledRejection', (err) => {
     console.log('Unhandles rejection. Shutting down...');

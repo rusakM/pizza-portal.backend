@@ -25,6 +25,7 @@ router
         bookingController.mapBooking,
         bookingController.mapPizzaDescriptions,
         bookingController.sendEmail,
+        bookingController.emitBookingToSockets,
         bookingController.processBooking,
         bookingController.mapBookingForPaymentSession,
         bookingController.createPaymentSession

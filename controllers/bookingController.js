@@ -194,6 +194,14 @@ exports.generateInvoice = (req, res, next) => {
     next();
 };
 
+exports.emitBookingToSockets = (req, res, next) => {
+    console.log(req.user.role);
+    if (req.user.role === 'użytkownik') {
+        req.app.get('io').emit('booking', req.booking);
+    }
+    next();
+};
+
 exports.processBooking = (req, res, next) => {
     if (req.booking.isPayNow && !req.booking.paid) {
         return next();

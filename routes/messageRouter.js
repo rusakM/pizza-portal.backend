@@ -4,7 +4,11 @@ const authController = require('../controllers/authController');
 
 const router = express.Router();
 
-router.post('/', messageController.saveMessage);
+router.post(
+    '/',
+    messageController.emitMessageToSockets,
+    messageController.saveMessage
+);
 
 router.use(
     authController.protect,

@@ -14,6 +14,12 @@ exports.deleteMessage = factory.deleteOne(Message);
 
 exports.saveMessage = factory.createOne(Message);
 
+exports.emitMessageToSockets = (req, res, next) => {
+    req.app.get('io').emit('message', req.body);
+
+    next();
+};
+
 exports.readMessage = (req, res, next) => {
     req.body = {
         isRead: true,
