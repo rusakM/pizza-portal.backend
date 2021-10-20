@@ -27,6 +27,10 @@ const supplySchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        isDeactivated: {
+            type: Boolean,
+            default: false,
+        },
     },
     {
         toJSON: { virtuals: true },

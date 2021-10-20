@@ -34,6 +34,29 @@ router
 
 router.post('/templates', pizzaController.createPizzaTemplate);
 
+router.post(
+    '/templates/create',
+    pizzaController.uploadPhoto,
+    pizzaController.resizePhoto,
+    authController.signUser,
+    pizzaController.createPizzasForTemplate,
+    pizzaController.createPizzaTemplate
+);
+
+router.patch(
+    '/templates/update/:id',
+    pizzaController.uploadPhoto,
+    pizzaController.resizePhoto,
+    authController.signUser,
+    pizzaController.updatePizzasForTemplate,
+    pizzaController.updatePizzaTemplate
+);
+
+router.patch(
+    '/templates/toggle-activation-status/:id',
+    pizzaController.toggleActivationTemplateStatus,
+    pizzaController.updatePizzaTemplate
+);
 router
     .route('/templates/:id')
     .patch(

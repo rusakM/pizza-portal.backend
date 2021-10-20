@@ -28,6 +28,10 @@ const productSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    isDeactivated: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const Product = new mongoose.model('Product', productSchema);

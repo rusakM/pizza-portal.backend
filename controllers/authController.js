@@ -132,11 +132,11 @@ exports.protect = catchAsync(async (req, res, next) => {
 });
 
 exports.signUser = (req, res, next) => {
-    if (!req.user.id) {
+    if (!req.user._id) {
         return next(new AppError('Nie można wykonać tej akcji', 404));
     }
     if (!req.body.rewriteUser) {
-        req.body.user = req.user.id;
+        req.body.user = req.user._id;
     } else {
         req.body.user = req.body.rewriteUser;
     }

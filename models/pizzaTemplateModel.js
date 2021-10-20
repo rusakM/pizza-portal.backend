@@ -31,6 +31,10 @@ const pizzaTemplateSchema = new mongoose.Schema(
         },
         coverPhoto: String,
         slug: String,
+        isDeactivated: {
+            type: Boolean,
+            default: false,
+        },
     },
     {
         toJSON: {
@@ -42,10 +46,21 @@ const pizzaTemplateSchema = new mongoose.Schema(
     }
 );
 
-pizzaTemplateSchema.pre('save', async function (next) {
-    const pizza = await Pizza.findById(this.smallPizza);
-    this.price = pizza.price;
-    this.slug = slugify(this.name, { lower: true });
+pizzaTemplateSchema.pre(/save|findOneAndUpdate/, async function (next) {
+    if (this.isNew) {
+        const pizza = await Pizza.findById(this.smallPizza);
+        this.price = pizza.price;
+        this.slug = slugify(this.name, { lower: true });
+    } else {
+        const docToUpdate = await this.model.findOne(this.getFilter());
+        const pizza = await Pizza.findById(docToUpdate.smallPizza);
+        this._update.price = pizza.price;
+        if (this._update.name) {
+            this._update.slug = slugify(this._update.name, { lower: true });
+        }
+    }
+
+    next();
 });
 
 pizzaTemplateSchema.pre(/^find/, function (next) {

@@ -68,3 +68,59 @@ exports.createAndPopulatePizza = catchAsync(async (req, res, next) => {
         },
     });
 });
+
+exports.createPizzasForTemplate = catchAsync(async (req, res, next) => {
+    const ingredients = req.body.ingredients
+        ? req.body.ingredients.split(',')
+        : [];
+
+    const pizzaData = {
+        ingredients,
+        user: req.body.user,
+    };
+
+    const smallPizza = await Pizza.create({ ...pizzaData, size: 24 });
+    const mediumPizza = await Pizza.create({ ...pizzaData, size: 32 });
+    const largePizza = await Pizza.create({ ...pizzaData, size: 42 });
+
+    req.body.smallPizza = smallPizza._id;
+    req.body.mediumPizza = mediumPizza._id;
+    req.body.largePizza = largePizza._id;
+
+    next();
+});
+
+exports.updatePizzasForTemplate = catchAsync(async (req, res, next) => {
+    let template = await PizzaTemplate.findById(req.params.id);
+    if (!template) {
+        return next(new AppError('Podany szablon pizzy nie istnieje', 404));
+    }
+    template = template.toObject();
+    let { ingredients } = req.body;
+
+    if (ingredients !== undefined) {
+        if (ingredients === '') {
+            ingredients = [];
+        } else {
+            ingredients = ingredients.split(',');
+        }
+        await Pizza.findByIdAndUpdate(template.smallPizza._id, { ingredients });
+        await Pizza.findByIdAndUpdate(template.mediumPizza._id, {
+            ingredients,
+        });
+        await Pizza.findByIdAndUpdate(template.largePizza._id, { ingredients });
+    }
+
+    next();
+});
+
+exports.toggleActivationTemplateStatus = catchAsync(async (req, res, next) => {
+    const template = await PizzaTemplate.findById(req.params.id);
+    if (!template) {
+        return next(new AppError('Podany szblon pizzy nie istnieje', 404));
+    }
+    req.body = {};
+    req.body.isDeactivated = !template.isDeactivated;
+
+    next();
+});

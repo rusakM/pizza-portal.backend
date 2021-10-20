@@ -10,7 +10,18 @@ router.get('/:id', productController.getOneProduct);
 
 router.use(authControler.protect, authControler.restrictTo('admin', 'kucharz'));
 
-router.post('/', productController.createProduct);
+router.post(
+    '/',
+    productController.uploadPhoto,
+    productController.resizePhoto,
+    productController.createProduct
+);
+
+router.route(
+    '/toggle-activation-status/:id',
+    productController.toggleProductActivation,
+    productController.updateProduct
+);
 
 router
     .route('/:id')
