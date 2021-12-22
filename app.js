@@ -26,7 +26,25 @@ const app = express();
 // 1) global middlewares
 
 //use cors
-app.use(cors());
+
+const corsSetup = {
+    origin: function (origin, cb) {
+        const whitelist = process.env.CORS_ORIGINS.split(';') || '*';
+        if (!origin || whitelist.indexOf(origin) !== -1) {
+            cb(null, true);
+        } else {
+            cb(new Error('Dostęp z niezaufanej witryny został zablokowany'));
+        }
+    },
+};
+
+app.use(cors(corsSetup));
+
+// app.use(
+//     cors({
+//         origin: process.env.CORS_ORIGINS.split(';'),
+//     })
+// );
 
 //use parameter pollution protection
 app.use(hpp());
@@ -93,5 +111,4 @@ app.use('/api/address', addressRouter);
 app.use('/api/bookingStatuses', bookingStatusRouter);
 
 app.use(errorHandler);
-
 module.exports = app;
