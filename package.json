@@ -6,7 +6,8 @@
     "scripts": {
         "start": "node index.js",
         "dev": "nodemon index.js",
-        "start:prod": "NODE_ENV=production nodemon index.js"
+        "start:prod": "NODE_ENV=production nodemon index.js",
+        "start:srv": "forever start index.js"
     },
     "author": "Mateusz Rusak",
     "license": "ISC",
