@@ -17,7 +17,7 @@ router.post(
     productController.createProduct
 );
 
-router.route(
+router.patch(
     '/toggle-activation-status/:id',
     productController.toggleProductActivation,
     productController.updateProduct
